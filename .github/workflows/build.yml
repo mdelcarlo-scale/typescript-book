@@ -1,5 +1,4 @@
 name: build ebook
-
 on:
   push:
     branches:
@@ -7,55 +6,36 @@ on:
   pull_request:
     branches:
       - master
-
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
       SHA: ${{ github.sha }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libegl1 libopengl0 libxcb-cursor-dev
-
-      - name: Install Calibre
-        run: sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
-
-      - name: Install GitBook CLI
-        run: sudo npm install -g gitbook-cli
-
-      - name: Install GitBook plugins
-        run: gitbook install
-
-      - name: Build eBooks
-        run: |
-          mkdir -p output
-          gitbook pdf . output/typescript-book-${SHA}.pdf
-          gitbook epub . output/typescript-book-${SHA}.epub
-          gitbook mobi . output/typescript-book-${SHA}.mobi
-
-      - name: Upload PDF artifact
+          node-version: '12.18.2'
+      - run: sudo apt update
+      - run: sudo apt install libegl1 libopengl0 libxcb-cursor-dev
+      - run: sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
+      - run: sudo npm install -g gitbook-cli
+      - run: gitbook install
+      - run: mkdir output
+      - run: gitbook pdf . ./output/typescript-book-${SHA}.pdf
+      - run: gitbook epub . ./output/typescript-book-${SHA}.epub
+      - run: gitbook mobi . ./output/typescript-book-${SHA}.mobi
+      - name: upload pdf artifact
         uses: actions/upload-artifact@v4
         with:
           name: typescript-book.pdf
           path: output/typescript-book-${{ env.SHA }}.pdf
-
-      - name: Upload EPUB artifact
+      - name: upload epub artifact
         uses: actions/upload-artifact@v4
         with:
           name: typescript-book.epub
           path: output/typescript-book-${{ env.SHA }}.epub
-
-      - name: Upload MOBI artifact
+      - name: upload mobi artifact
         uses: actions/upload-artifact@v4
         with:
           name: typescript-book.mobi
